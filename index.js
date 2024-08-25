@@ -10,16 +10,16 @@ env.config();
 
 
 const app = express();
-const port = 5000;
+const port = 3000;
 const slatRounds=10;
-const db = new pg.Client({
-    user: "postgres",
-    database: "IIIT-B Site",
-    host : "localhost",
-    password : process.env.dbPassword,
-    port: 5432
-});
-db.connect();
+// const db = new pg.Client({
+//     user: "postgres",
+//     database: "IIIT-B Site",
+//     host : "localhost",
+//     password : process.env.dbPassword,
+//     port: 5432
+// });
+// db.connect();
 
 
 app.use(bodyParser.urlencoded({extended:true}));
