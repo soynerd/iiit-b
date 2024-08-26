@@ -178,6 +178,7 @@
 
             const radios = document.querySelectorAll('input[type="radio"][name="Branches"]');
             const sems = document.querySelectorAll("input[type='submit'][name='syllabus']");
+            const res = document.querySelectorAll("input[type='submit'][name='resources']");
 
 
             function handleChange(event) {
@@ -188,38 +189,35 @@
                     semester = event.target.value;
                     sendToDownload(branch, semester);
                 }
+                if(event.target.name == "resources"){
+                    semester = event.target.value;
+                    sendToDownloadR(branch, semester);
+                }
 
                 console.log("Branch -> " + branch + " Sem ->" + semester);
             }
-
-            // Add event listeners to all radio buttons
             radios.forEach(radio => {
                 radio.addEventListener('change', handleChange);
             });
             sems.forEach(sem => {
                 sem.addEventListener('click', handleChange)
             });
-
+            res.forEach(re => {
+                re.addEventListener('click', handleChange)
+            });
         });
 
         function sendToDownload(branch, sem) {
             branch = branch.toLowerCase();
-            console.log("sendtodownloadhit");
-            sem = sem.toLowerCase();
-            const index = parseInt(sem[4]);
-            
-                download(branch, index-1);
-            // if (branch = "ece")
-            //     switch (sem) {
-            //         case "sem 1":
-            //             download(0);
-            //             console.log("this");
-            //             break;
-
-            //         default:
-            //             break;
-            //     }
+            const index = parseInt(sem[4]);            
+            download(branch, index-1);            
         }
+        function sendToDownloadR(branch, sem) {
+            branch = branch.toLowerCase();
+            const index = parseInt(sem[4]);            
+            downloadR(branch, index-1);            
+        }
+
 
         const eceUrls =[
     "https://drive.usercontent.google.com/u/0/uc?id=1BJlcThazPReMBmJ2M6traE0SSiikWlA7&export=download",
@@ -251,96 +249,8 @@ const itUrls = [
     "https://drive.usercontent.google.com/u/0/uc?id=1LUG6U3Fuv1mNW77UNjREwy0hoCnbL2m5&export=download",
     "https://drive.usercontent.google.com/u/0/uc?id=1--XUeM7j4sr4oGA261p8fhG9jQ5C76qO&export=download",
     "https://drive.usercontent.google.com/u/0/uc?id=1okQv03Em8eqfWDPegsM-sfh7L7efiq5U&export=download",
-]
-
-
-        function download(branch, index) {
-            if(branch =='ece')
-            var fileUrl = eceUrls[index]; // URL of the file
-            if(branch =='cse')
-            var fileUrl = cesUrls[index]; // URL of the file
-            if(branch =='it')
-            var fileUrl = itUrls[index]; // URL of the file
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.target = '_black'; // You can specify a filename here if needed
-            link.style.display = 'none'; // Hide the link
-            document.body.appendChild(link);
-            link.click(); // Trigger the download
-            document.body.removeChild(link); // Clean up
-        }
-    </script>
-    <script>
-        const temp = document.getElementById("resourcePage");
-            if(temp){
-                window.scrollTo(0,500);
-            }
-        
-
-    </script>
-
-
-
-<script>
-        var branch = "";
-        var semester = "";
-        document.addEventListener('DOMContentLoaded', (event) => {
-
-            const radios = document.querySelectorAll('input[type="radio"][name="Branches"]');
-            const sems = document.querySelectorAll("input[type='submit'][name='resources']");
-
-
-            function handleChange(event) {
-                console.log('Selected value:', event.target.value);
-                if (event.target.name == "Branches")
-                    branch = event.target.value;
-                if (event.target.name == "resources") {
-                    semester = event.target.value;
-                    sendToDownload(branch, semester);
-                }
-
-                console.log("Branch -> " + branch + " Sem ->" + semester);
-            }
-
-            // Add event listeners to all radio buttons
-            radios.forEach(radio => {
-                radio.addEventListener('change', handleChange);
-            });
-            sems.forEach(sem => {
-                sem.addEventListener('click', handleChange)
-            });
-
-        });
-
-        function sendToDownload(branch, sem) {
-            branch = branch.toLowerCase();
-            console.log("sendtodownloadhit");
-            sem = sem.toLowerCase();
-            const index = parseInt(sem[4]);
-            
-                download(branch, index-1);
-        }
-
-
-
-
-        function download(branch, index) {
-            if(branch =='ece')
-            var fileUrl = eceResources[index]; // URL of the file
-            if(branch =='cse')
-            var fileUrl = cseResources[index]; // URL of the file
-            if(branch =='it')
-            var fileUrl = itResources[index]; // URL of the file
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.target = '_black'; // You can specify a filename here if needed
-            link.style.display = 'none'; // Hide the link
-            document.body.appendChild(link);
-            link.click(); // Trigger the download
-            document.body.removeChild(link); // Clean up
-        }
-    
-    const eceResources=[
+];
+const eceResources=[
         "https://drive.google.com/drive/folders/1OYHcjn6idtajo_hrmnLDCNAhU3_SJn3I?usp=sharing",
         "/errorPage",
         "/errorPage",
@@ -370,7 +280,53 @@ const itUrls = [
         "/errorPage",
         "/errorPage",
     ];
-</script>
+
+
+        function download(branch, index) {
+            if(branch =='ece')
+            var fileUrl = eceUrls[index]; // URL of the file
+            if(branch =='cse')
+            var fileUrl = cesUrls[index]; // URL of the file
+            if(branch =='it')
+            var fileUrl = itUrls[index]; // URL of the file
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.target = '_black'; // You can specify a filename here if needed
+            link.style.display = 'none'; // Hide the link
+            document.body.appendChild(link);
+            link.click(); // Trigger the download
+            document.body.removeChild(link); // Clean up
+        }
+
+        function downloadR(branch, index) {
+            console.log("r downl");
+            if(branch =='ece')
+            var fileUrl = eceResources[index]; // URL of the file
+            if(branch =='cse')
+            var fileUrl = cseResources[index]; // URL of the file
+            if(branch =='it')
+            var fileUrl = itResources[index]; // URL of the file
+            console.log(fileUrl);
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.target = '_black'; // You can specify a filename here if needed
+            link.style.display = 'none'; // Hide the link
+            document.body.appendChild(link);
+            link.click(); // Trigger the download
+            document.body.removeChild(link); // Clean up
+        }
+
+
+    </script>
+    <script>
+        const temp = document.getElementById("resourcePage");
+            if(temp){
+                window.scrollTo(0,600);
+            }
+        
+
+    </script>
+
 </body>
 
 </html>
