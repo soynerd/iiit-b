@@ -179,18 +179,24 @@
             const radios = document.querySelectorAll('input[type="radio"][name="Branches"]');
             const sems = document.querySelectorAll("input[type='submit'][name='syllabus']");
             const res = document.querySelectorAll("input[type='submit'][name='resources']");
-
+            var temp = 0;
 
             function handleChange(event) {
                 console.log('Selected value:', event.target.value);
-                if (event.target.name == "Branches")
+                if (event.target.name == "Branches"){
+                    temp=1;
                     branch = event.target.value;
+                }
+                    
                 if (event.target.name == "syllabus") {
                     semester = event.target.value;
+                    if(temp==1)
                     sendToDownload(branch, semester);
+                    temp=0;
                 }
                 if(event.target.name == "resources"){
                     semester = event.target.value;
+                    if(temp==1)
                     sendToDownloadR(branch, semester);
                 }
 
