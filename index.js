@@ -12,14 +12,44 @@ env.config();
 const app = express();
 const port = 3000;
 const slatRounds=10;
-// const db = new pg.Client({
-//     user: "postgres",
-//     database: "IIIT-B Site",
-//     host : "localhost",
-//     password : process.env.dbPassword,
-//     port: 5432
-// });
-// db.connect();
+const config = {
+    user: process.env.user,
+    password: process.env.dbPassword,
+    host: process.env.host,
+    port: process.env.port,
+    database: "defaultdb",
+    ssl: {
+        rejectUnauthorized: true,
+        ca: `-----BEGIN CERTIFICATE-----
+MIIEQTCCAqmgAwIBAgIUJ4o54VES/Uzq+uKydlB/hCmBd0gwDQYJKoZIhvcNAQEM
+BQAwOjE4MDYGA1UEAwwvMTY2NWI4YjAtMThjYi00OTExLTkxNDItZTUzOWE0MThj
+OTU1IFByb2plY3QgQ0EwHhcNMjQxMDEyMDY0ODQzWhcNMzQxMDEwMDY0ODQzWjA6
+MTgwNgYDVQQDDC8xNjY1YjhiMC0xOGNiLTQ5MTEtOTE0Mi1lNTM5YTQxOGM5NTUg
+UHJvamVjdCBDQTCCAaIwDQYJKoZIhvcNAQEBBQADggGPADCCAYoCggGBAKpJAyQ1
+YWBCeXTCXyFOEbZ+NYjY6+LXn8Y7/3cLvrAEpV7He2/YAj8rLI/QitbMM8UAuVxT
+I+SaAZlr7Thhf5VGJIGtgLQviptoJGRvC7if53TET85rwD+f8iWbF2CAsihkM7g3
+vQ77CHjFSUwh8zUCauX27ynrUQ1Ev6MQH4D77IdvH9xrQZPmUjXTtqDNvg2MA5xi
+YUCXbZTl4H7smUDJOhWh8OjKR0aM4W9pt9TcXc5pZYMR//qrGg208Er0/W8eqHVW
+CVwkoKyeLdhkpB9jSMCl83LkwFB+T+dvl5qCjDoRue+MgDSlAntWqcdnCDVght2N
+ngUwXsUegHmjbxFXdRVdrOzOqzdtJAAn9VvPt0aRG5JtYqVp4EteuqLAAFbnHLXw
+2CsiviRRisRHOXMKBkucRgfEJGa6xtefm8gf9xpUSmPoL7okdhMjz57Dx76CFwt1
+p89MvgEuqOYhxKE2lrYTM3sjy/s3p4uJ/2gHmqwFULAjELkr+QnoXoIiiwIDAQAB
+oz8wPTAdBgNVHQ4EFgQUY2ZCAm+R1LbUdMvZiL5Uoa2mLBowDwYDVR0TBAgwBgEB
+/wIBADALBgNVHQ8EBAMCAQYwDQYJKoZIhvcNAQEMBQADggGBAJmGX7ESm1Bte2pb
+LnwBxVmcBFFa3nNK7pTEbQZZ2qgmJHlypa1DkaT/ht3uizUINHyIVj/zBJ+62U+y
+ijdVv5J2ZIjIXCPfT/yYhW14u6k/DU8M2QNHyXrRGc2sNZ4HbnH0VRjslZSlIzjK
+WNDXQaS2TPeaQ24a4jIvUTo3K+SkR6tse3yPQ3zT6bH7rrAKhuOza79u6pKnl5v+
+ayRD7bSE2Nldwh6H3hRzl3kZ78aCFwanl7XTsPPyPgtTRZ2N3co3goUpr9a+/Jr5
+eLbwuXQsQg3UFbQ3MLmgeTroE23E2sed9rXo/zpYYnvIVUPHZd/aASudycbSEp7+
+2ZLbYXdfWpERt5T3yB4Txbhtl05FeMMLOfcptelJURQmc2NJmdROPRPu5XyyW16M
+I1sfveHKB+JwDihlJvMBPdsIwfOJksKd6L4Hq89469PdVvWJflNKmCH6kn78eBix
+MzoDUovgmg8Ns/CW7BIpyJjAJ/L5s5Ly5ZsvAgR4eI8JpYlgwQ==
+-----END CERTIFICATE-----`,
+    },
+};
+
+const db = new pg.Client(config);
+db.connect();
 
 
 app.use(bodyParser.urlencoded({extended:true}));
@@ -69,52 +99,53 @@ app.post("/downloadResources", (req, res)=>{
     }, 100);
 
 });
-app.post("*", (req, res)=>{
-    res.render("errorPage.ejs");
-})
-// app.post("/checkLogin",async (req, res)=>{
-//     console.log(req.body);
-//     const data = await db.query("select password from users where username = $1", [req.body.username]);
-//     if(data.rows.length > 0){
-//         const hashed = data.rows[0].password;
-//         const check = bcrypt.compareSync(req.body.password, hashed);
-//         if(check)
-//             res.render("secret.ejs");
-//         else
-//             res.render("login.ejs", {loginPasswordAlert : "Incorrect Password"})
-//     }else{
-//         res.render("login.ejs", {loginUsernameAlert : "Username not found"})
-//     }
+
+app.post("/checkLogin",async (req, res)=>{
+    console.log(req.body);
+    const data = await db.query("select password from users where username = $1", [req.body.username]);
+    if(data.rows.length > 0){
+        const hashed = data.rows[0].password;
+        const check = bcrypt.compareSync(req.body.password, hashed);
+        if(check)
+            res.render("secret.ejs");
+        else
+            res.render("login.ejs", {loginPasswordAlert : "Incorrect Password"})
+    }else{
+        res.render("login.ejs", {loginUsernameAlert : "Username not found"})
+    }
     
     
 
-// });
-// app.post("/register", async (req, res)=>{
-//     console.log(req.body);
-//     console.log(req.body.passwordReg);
-//     const check = await db.query("select * from users where username = $1", [req.body.usernameReg]);
-//     if(check.rows.length > 0)
-//         res.render("login.ejs", {signup : 1, signUpAlert : "User already exists",name : req.body.name})
-//     else
-//         bcrypt.hash(req.body.passwordReg, slatRounds,async (err, hash)=> {
-//             if(err)
-//                 console.log(err);
-//             else
-//                 console.log(hash);
-//                 const data =await db.query("insert into users values(default, $1, $2) returning id;", [req.body.usernameReg, hash]);
-//                 const id = data.rows[0].id;
-//                 db.query("insert into userdetails(id, fName) values($1, $2)", [id, req.body.name]);
-//                 res.redirect("/signupSuccess.ejs");
-//         });
+});
+app.post("/register", async (req, res)=>{
+    console.log(req.body);
+    console.log(req.body.passwordReg);
+    const check = await db.query("select * from users where username = $1", [req.body.usernameReg]);
+    if(check.rows.length > 0)
+        res.render("login.ejs", {signup : 1, signUpAlert : "User already exists",name : req.body.name})
+    else
+        bcrypt.hash(req.body.passwordReg, slatRounds,async (err, hash)=> {
+            if(err)
+                console.log(err);
+            else
+                console.log(hash);
+                const data =await db.query("insert into users values(default, $1, $2) returning id;", [req.body.usernameReg, hash]);
+                const id = data.rows[0].id;
+                //db.query("insert into userdetails(id, fName) values($1, $2)", [id, req.body.name]);
+                res.redirect("/test");
+        });
     
-// });
+});
+
 
 
 app.listen(port, ()=>{
     console.log(`Server is listening on port ${port}`);
 })
 
-
+app.post("*", (req, res)=>{
+    res.render("errorPage.ejs");
+})
 
 
 
