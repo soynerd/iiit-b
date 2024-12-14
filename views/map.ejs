@@ -58,14 +58,12 @@
           ><a href="#" class="nav-link w-nav-link" style="opacity: 50%">Map</a
           ><a href="/resources" class="nav-link w-nav-link">Resources</a
           ><a href="/contact" class="nav-link w-nav-link">Contact</a
-          ><a href="/login" class="login w-button"
-            >Login</a
           >
-          <link rel="prefetch" href="http://https//www.instagram.com" />
+          <a href=<%= log?"/logout":"/login" %> class="login w-button"><%= log?"Logout":"Login" %></a>
         </nav>
-        <div class="menu-button w-nav-button">
-          <div class="icon w-icon-nav-menu"></div>
-        </div>
+        <div class="w-nav-button">
+          <div class="w-icon-nav-menu"></div>
+      </div>
       </div>
     </div>
 

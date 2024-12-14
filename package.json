@@ -13,11 +13,20 @@
   "author": "Naveen, Mritunjay",
   "license": "ISC",
   "dependencies": {
+    "@babel/core": "^7.25.8",
+    "@babel/preset-env": "^7.25.8",
+    "@babel/preset-react": "^7.25.7",
+    "@babel/register": "^7.25.7",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
+    "express-session": "^1.18.1",
     "passport": "^0.7.0",
-    "pg": "^8.12.0"
+    "passport-local": "^1.0.0",
+    "pg": "^8.12.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io": "^4.8.1"
   }
 }

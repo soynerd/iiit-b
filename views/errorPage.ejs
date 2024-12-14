@@ -37,7 +37,7 @@
                 <a href="/map" class="nav-link-4 w-nav-link">Map</a>
                 <a href="/resources" class="nav-link-4 w-nav-link">Resources</a>
                 <a href="/contact" class="nav-link-4 w-nav-link">Contact</a>
-                <a href="/login"class="button-4 w-button">Login</a>
+                <a href=<%= log?"/logout":"/login" %> class="button-4 w-button"><%= log?"Logout":"Login" %></a>
 
             </nav>
             <div class="w-nav-button">

@@ -1,9 +1,14 @@
 import express from "express";
 import bodyParser from "body-parser";
-import ejs from "ejs";
+//import ejs from "ejs";
 import passport from "passport";
+import { Strategy as LocalStrategy } from 'passport-local';
+import session from "express-session"
 import pg from "pg";
 import env from "dotenv";
+import { Server } from "socket.io";
+import {createServer} from "node:http";
+
 import bcrypt, { compare } from "bcrypt";
 
 env.config();
@@ -11,7 +16,11 @@ env.config();
 
 const app = express();
 const port = 3000;
-const slatRounds=10;
+
+const server = createServer(app);
+const io = new Server(server);
+
+const saltRounds=10;
 const config = {
     user: process.env.user,
     password: process.env.dbPassword,
@@ -51,40 +60,117 @@ MzoDUovgmg8Ns/CW7BIpyJjAJ/L5s5Ly5ZsvAgR4eI8JpYlgwQ==
 const db = new pg.Client(config);
 db.connect();
 
+app.use(
+    session({
+      secret: process.env.topSecret,
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        maxAge: 7 * 24 * 60 * 60 * 1000 // -> for 1 week
+    }
+    })
+  );
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(express.static("public"));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.get("/", (req, res)=>{
-    res.render("index.ejs");
+    res.render("index.ejs", {log:req.isAuthenticated()});
 });
 app.get("/academic", (req, res)=>{
-    res.render("academic.ejs", {eceurls : eceUrls, cseUrls : cesUrls, itUrls : itUrls});
+    res.render("academic.ejs", {log:req.isAuthenticated(), eceurls : eceUrls, cseUrls : cesUrls, itUrls : itUrls});
 });
 app.get("/map", (req, res)=>{
-    res.render("map.ejs", {positions : position});
+    res.render("map.ejs", {log:req.isAuthenticated(), positions : position});
 });
 app.get("/resources", (req, res)=>{
-    res.render("academic.ejs", {resour : 1});
+    res.render("academic.ejs", {log:req.isAuthenticated(), resour : 1});
 });
 app.get("/login", (req, res)=>{
-    res.render("login.ejs");
+    (req.isAuthenticated())?res.redirect("/chat"):res.render("login.ejs");    
 
 });
+app.get("/failed_login", (req, res)=>{
+    res.render("login.ejs", {failed : 1});
+})
+app.get("/signup", (req, res)=>{
+    res.render("login.ejs", {signup:1});
+})
 app.get("/test", (req, res)=>{
-    res.render("signupSuccess.ejs");
+    res.render("signupSuccess.ejs" , {log:req.isAuthenticated()});
 });
 app.get("/contact", (req, res)=>{
-    res.render("contact.ejs");
+    res.render("contact.ejs", {log:req.isAuthenticated()});
 });
 app.get("/errorPage", (req, res)=>{
-    res.render("errorPage.ejs");
+    res.render("errorPage.ejs", {log:req.isAuthenticated()});
 });
+app.get("/chat",async (req, res)=>{
+    if(req.isAuthenticated()){
+        const messageData = await db.query("select * from messages order by messageId desc;");
+        res.render("chat.ejs", { allMessages : messageData.rows, currentUser:req.user.username, log:req.isAuthenticated()});
+
+    }else{
+        res.redirect("/login");
+
+    }    
+});
+
+app.get("/secret", (req, res)=>{
+    res.render("secret.ejs");
+});
+
+app.get("/forgetPassword", (req, res)=>{
+    res.render("forgetPassword.ejs", {log:req.isAuthenticated()})
+})
+
+app.get("/logout", (req, res) => {
+    req.logout( (err)=> {
+      if (err) {
+        return next(err);
+      }
+      res.redirect("/");
+    });
+  });
+
+var connectedUsers = [];
+io.on("connection", (socket)=>{
+    console.log("user connected id: ", socket.id);
+    
+    socket.on('user details', (user)=>{
+        const existingUser = connectedUsers.find((u) => u.name === user.name);
+        if (!existingUser) {
+            connectedUsers.push({ name: user.name, id: socket.id });
+        }
+    });
+
+    socket.on('connected users', ()=>{      
+        io.emit('connected users', connectedUsers);
+    });
+
+    socket.on('chat message', (msg, username)=>{
+        //console.log("message: " + msg + " from " + username + " id " + socket.id);
+        socket.broadcast.emit('chat message', msg, username);
+    });
+    
+    socket.on("disconnect", ()=>{
+        connectedUsers = connectedUsers.filter((user)=>{
+            return user.id !== socket.id;
+        });
+        io.emit('connected users', connectedUsers);
+    });
+});
+
+
 app.get("*", (req, res)=>{
-    res.status(404).render("errorPage.ejs");
+    res.status(404).render("errorPage.ejs", {log:req.isAuthenticated()});
 });
 
 
+//post requests
 app.post("/downloadSyllabus", (req, res)=>{
     console.log(req.body);
     setTimeout(()=>{
@@ -100,59 +186,95 @@ app.post("/downloadResources", (req, res)=>{
 
 });
 
-app.post("/checkLogin",async (req, res)=>{
-    console.log(req.body);
-    const data = await db.query("select password from users where username = $1", [req.body.username]);
-    if(data.rows.length > 0){
-        const hashed = data.rows[0].password;
-        const check = bcrypt.compareSync(req.body.password, hashed);
-        if(check)
-            res.render("secret.ejs");
-        else
-            res.render("login.ejs", {loginPasswordAlert : "Incorrect Password"})
-    }else{
-        res.render("login.ejs", {loginUsernameAlert : "Username not found"})
-    }
-    
-    
+app.post(
+    "/login",
+    passport.authenticate("local", {
+      successRedirect: "/chat",
+      failureRedirect: "/failed_login",
+    }));
 
-});
 app.post("/register", async (req, res)=>{
-    console.log(req.body);
-    console.log(req.body.passwordReg);
-    const check = await db.query("select * from users where username = $1", [req.body.usernameReg]);
-    if(check.rows.length > 0)
-        res.render("login.ejs", {signup : 1, signUpAlert : "User already exists",name : req.body.name})
-    else
-        bcrypt.hash(req.body.passwordReg, slatRounds,async (err, hash)=> {
-            if(err)
-                console.log(err);
+
+    if(req.body.passwordReg.length < 6 || req.body.password.length > 20 || req.body.usernameReg.length > 20 || req.body.dob.length != 8 || !isNumeric(req.body.dob) )
+        res.render("login.ejs", {signup:1, invalidCredentials : 1});
+    else {
+        console.log(req.body);
+        console.log(req.body.passwordReg);
+        const reset = await db.query("select * from users where username = $1 and dob = $2;", [req.body.usernameReg, req.body.dob]);
+        if(reset.rows.length > 0){
+            bcrypt.hash(req.body.passwordReg, saltRounds, async(err, hash)=>{
+                if(err)
+                    console.log(err);
+                else
+                    db.query("update users set password = $1 where username = $2 and dob = $3;", [hash, req.body.usernameReg, req.body.dob]).then(()=>{
+                        res.redirect("/test")
+                    });
+
+            })
+        }else{
+            const check = await db.query("select * from users where username = $1;", [req.body.usernameReg]);
+            if(check.rows.length > 0)
+                res.render("login.ejs", {signup : 1, signUpUsernameAlert : "User already exists",name : req.body.name})
             else
-                console.log(hash);
-                const data =await db.query("insert into users values(default, $1, $2) returning id;", [req.body.usernameReg, hash]);
-                const id = data.rows[0].id;
-                //db.query("insert into userdetails(id, fName) values($1, $2)", [id, req.body.name]);
-                res.redirect("/test");
-        });
+                bcrypt.hash(req.body.passwordReg, saltRounds,async (err, hash)=> {
+                    if(err){
+                        console.log(err);
+                    }
+                        
+                    else{
+                        console.log(hash);
+                        const data =await db.query("insert into users values(default, $1, $2, $3);", [req.body.usernameReg, hash, req.body.dob]);
+                        //db.query("insert into userdetails(id, fName) values($1, $2)", [id, req.body.name]);
+                        res.redirect("/test");
+                    }
+                        
+                });
+        }
+        
+    }
+        
     
 });
 
-
-
-app.listen(port, ()=>{
-    console.log(`Server is listening on port ${port}`);
-})
+passport.use(new LocalStrategy(
+    async (username, password, cb) => {
+        try{
+            
+      const user = await db.query("select * from users where username = $1", [username])
+      if(user.rows.length>0){
+        const hashed = user.rows[0].password;
+        const check = bcrypt.compareSync(password, hashed);
+        if(check){
+            return cb(null, user.rows[0]); // password correct
+        }else{
+            return cb(null, false); //password incorrect
+        }
+      }else{
+        return cb("user not found");
+      }
+        }catch (err){
+            console.log("error in login auth",err);
+        }
+    }
+  ));
+  
+  // Serialize user 
+  passport.serializeUser((user, cb) => {
+    cb(null, user);
+  });
+  
+  // Deserialize user
+  passport.deserializeUser((user, cb) => {
+    cb(null, user);
+  });
 
 app.post("*", (req, res)=>{
     res.render("errorPage.ejs");
-})
+});
 
-
-
-
-
-
-
+server.listen(port, ()=>{
+    console.log(`Server is listening on port ${port}`);
+});
 
 // here are the static datas
 const position =[

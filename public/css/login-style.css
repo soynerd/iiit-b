@@ -519,10 +519,11 @@ label {
   height: 38px;
   margin-bottom: 10px;
   padding: 8px 12px;
-  font-size: 14px;
+  /* font-size: 14px; */
   line-height: 1.42857;
   display: block;
 }
+
 
 .w-input::placeholder, .w-select::placeholder {
   color: #999;
@@ -2291,6 +2292,7 @@ textarea.w-input, textarea.w-select {
   flex: 0 auto;
   width: 175px;
   margin-bottom: 0;
+  font-size: 18px;
 }
 
 .text-field:hover, .text-field:active, .text-field:focus {
@@ -2599,7 +2601,7 @@ textarea.w-input, textarea.w-select {
     margin-right: auto;
     padding-bottom: 0;
     padding-right: 0;
-    display: flex;
+
   }
 
   .login-form {
