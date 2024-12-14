@@ -195,11 +195,11 @@ app.post(
 
 app.post("/register", async (req, res)=>{
 
-    if(req.body.passwordReg.length < 6 || req.body.password.length > 20 || req.body.usernameReg.length > 20 || req.body.dob.length != 8 || !isNumeric(req.body.dob) )
+    if(req.body.passwordReg.length < 6 || req.body.passwordReg.length > 20 || req.body.usernameReg.length > 20 || req.body.dob.length != 8 || isNaN(req.body.dob) )
         res.render("login.ejs", {signup:1, invalidCredentials : 1});
     else {
-        console.log(req.body);
-        console.log(req.body.passwordReg);
+        // console.log(req.body);
+        // console.log(req.body.passwordReg);
         const reset = await db.query("select * from users where username = $1 and dob = $2;", [req.body.usernameReg, req.body.dob]);
         if(reset.rows.length > 0){
             bcrypt.hash(req.body.passwordReg, saltRounds, async(err, hash)=>{

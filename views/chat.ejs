@@ -143,7 +143,7 @@
           </div>
           <div class="input-bg">
             <div class="input-mess">
-              <form id="shit" action="" autocomplete="off">
+              <form id="messForm" action="" autocomplete="off">
                 <input id="input" type="text" id="message" placeholder="Write Something">
              <button class="button-8 " id="send-btn" type="submit">Send</button>
               </form>
@@ -243,12 +243,12 @@
         })
         
 
-        const currentUserMessages = messages.filter(message=>{
-            return message.username === currentUser;
-        });
-        const otherUserMessages = messages.filter(message=>{
-            return message.username != currentUser;
-        });
+        // const currentUserMessages = messages.filter(message=>{
+        //     return message.username === currentUser;
+        // });
+        // const otherUserMessages = messages.filter(message=>{
+        //     return message.username != currentUser;
+        // });
 
 
         // const box = document.getElementById("box");
@@ -371,7 +371,7 @@
 
   const socket = io();
 
-  const form = document.getElementById('shit');
+  const form = document.getElementById('messForm');
   const input = document.getElementById('input');
 
   form.addEventListener('submit', (e) => {
@@ -427,7 +427,6 @@
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // setTimeout(scroll, 100);
    
   window.onload = () => {
     const chatBox = document.getElementById('box');
