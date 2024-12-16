@@ -95,10 +95,10 @@ app.get("/login", (req, res)=>{
 });
 app.get("/failed_login", (req, res)=>{
     res.render("login.ejs", {failed : 1});
-})
+});
 app.get("/signup", (req, res)=>{
     res.render("login.ejs", {signup:1});
-})
+});
 app.get("/test", (req, res)=>{
     res.render("signupSuccess.ejs" , {log:req.isAuthenticated()});
 });
@@ -147,13 +147,21 @@ io.on("connection", (socket)=>{
         }
     });
 
-    socket.on('connected users', ()=>{      
+    socket.on('connected users', ()=>{
         io.emit('connected users', connectedUsers);
     });
 
-    socket.on('chat message', (msg, username)=>{
+    socket.on('chat message',async (msg, username)=>{
         //console.log("message: " + msg + " from " + username + " id " + socket.id);
-        socket.broadcast.emit('chat message', msg, username);
+        try{
+            socket.broadcast.emit('chat message', msg, username);
+            await db.query("insert into messages values ( default, $1, default, default, $2, default) ;", [username, msg]);
+        }catch(err){
+            console.log(err);
+        }
+        
+
+
     });
     
     socket.on("disconnect", ()=>{
@@ -195,24 +203,24 @@ app.post(
 
 app.post("/register", async (req, res)=>{
 
-    if(req.body.passwordReg.length < 6 || req.body.passwordReg.length > 20 || req.body.usernameReg.length > 20 || req.body.dob.length != 8 || isNaN(req.body.dob) )
+    if(req.body.passwordReg.length < 6 || req.body.passwordReg.length > 20 || req.body.usernameReg.toLowerCase().length > 20 || req.body.dob.length != 8 || isNaN(req.body.dob) )
         res.render("login.ejs", {signup:1, invalidCredentials : 1});
     else {
         // console.log(req.body);
         // console.log(req.body.passwordReg);
-        const reset = await db.query("select * from users where username = $1 and dob = $2;", [req.body.usernameReg, req.body.dob]);
+        const reset = await db.query("select * from users where username = $1 and dob = $2;", [req.body.usernameReg.toLowerCase(), req.body.dob]);
         if(reset.rows.length > 0){
             bcrypt.hash(req.body.passwordReg, saltRounds, async(err, hash)=>{
                 if(err)
                     console.log(err);
                 else
-                    db.query("update users set password = $1 where username = $2 and dob = $3;", [hash, req.body.usernameReg, req.body.dob]).then(()=>{
+                    db.query("update users set password = $1 where username = $2 and dob = $3;", [hash, req.body.usernameReg.toLowerCase(), req.body.dob]).then(()=>{
                         res.redirect("/test")
                     });
 
             })
         }else{
-            const check = await db.query("select * from users where username = $1;", [req.body.usernameReg]);
+            const check = await db.query("select * from users where username = $1;", [req.body.usernameReg.toLowerCase()]);
             if(check.rows.length > 0)
                 res.render("login.ejs", {signup : 1, signUpUsernameAlert : "User already exists",name : req.body.name})
             else
@@ -223,7 +231,7 @@ app.post("/register", async (req, res)=>{
                         
                     else{
                         console.log(hash);
-                        const data =await db.query("insert into users values(default, $1, $2, $3);", [req.body.usernameReg, hash, req.body.dob]);
+                        const data =await db.query("insert into users values(default, $1, $2, $3);", [req.body.usernameReg.toLowerCase(), hash, req.body.dob]);
                         //db.query("insert into userdetails(id, fName) values($1, $2)", [id, req.body.name]);
                         res.redirect("/test");
                     }
@@ -240,7 +248,7 @@ passport.use(new LocalStrategy(
     async (username, password, cb) => {
         try{
             
-      const user = await db.query("select * from users where username = $1", [username])
+      const user = await db.query("select * from users where username = $1", [username.toLowerCase()])
       if(user.rows.length>0){
         const hashed = user.rows[0].password;
         const check = bcrypt.compareSync(password, hashed);
@@ -250,7 +258,7 @@ passport.use(new LocalStrategy(
             return cb(null, false); //password incorrect
         }
       }else{
-        return cb("user not found");
+        return cb(null, false, "user not found");
       }
         }catch (err){
             console.log("error in login auth",err);
