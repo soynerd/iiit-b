@@ -2019,6 +2019,19 @@ textarea.w-input, textarea.w-select {
   .w-tab-link {
     display: block;
   }
+  .input-bg{
+    height: 40px !important;
+    margin: auto 10px !important;
+  }
+  #messForm>input{
+    height: 35px;
+    padding: 5px;
+  }
+  #send-btn{
+    font-size: 1.05rem;
+    height: 30px;
+    width: 60px;
+  }
 }
 
 .w-ix-emptyfix:after {
@@ -2428,6 +2441,7 @@ textarea.w-input, textarea.w-select {
   margin-bottom: 0;
   display: block;
   position: relative;
+  word-break: break-word;
 }
 
 .send-text-mess {
@@ -2438,7 +2452,6 @@ textarea.w-input, textarea.w-select {
   min-width: auto;
   max-width: 350px;
   min-height: 40px;
-  max-height: 80px;
   margin-left: auto;
   padding: 10px;
   display: flex;
@@ -2475,7 +2488,7 @@ textarea.w-input, textarea.w-select {
   min-width: auto;
   max-width: 350px;
   min-height: 40px;
-  max-height: 50px;
+  /* max-height: 50px; */
   padding: 10px;
   display: flex;
 }
@@ -2512,6 +2525,7 @@ textarea.w-input, textarea.w-select {
   height: 55px;
   max-height: 200px;
   margin: 5px auto;
+  margin-bottom: 10px;
   padding-left: 10px;
   padding-right: 10px;
 }
@@ -2866,7 +2880,14 @@ textarea.w-input, textarea.w-select {
   }
 }
 
-@media screen and (max-width: 991px) {
+@media screen and (min-width: 991px) {
+  .button-4{
+    background-color: #194542;
+    border-radius: 20px;
+  }
+}
+
+@media screen and (max-width: 991px) {  
   .text-block-3 {
     margin-left: 20px;
     padding-left: 0;
